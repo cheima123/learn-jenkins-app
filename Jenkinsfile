@@ -25,11 +25,11 @@ pipeline {
             parallel {
                 stage('Unit tests') {
                     agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
+                        docker {
+                            image 'node:18-alpine'
+                            reuseNode true
+                        }
+                    }
                 }
             }
             
@@ -42,14 +42,15 @@ pipeline {
         
 
             stage('E2E') {
-                 agent {
-                     docker {
-                         image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                         reuseNode true
+                agent {
+                    docker {
+                        image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                        reuseNode true
+                    }
                 }
             }
 
-             steps{
+            steps{
                 sh '''
                     npm install serve
                     node_modules/.bin/serve -s build &

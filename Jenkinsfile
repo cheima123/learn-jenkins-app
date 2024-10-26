@@ -21,7 +21,7 @@ pipeline {
             }
         }
 
-        stage('Tests'){
+        stage('Tests') {
             parallel {
                 stage('Unit tests') {
                     agent {
@@ -30,43 +30,37 @@ pipeline {
                             reuseNode true
                         }
                     }
+                    steps {
+                        sh '''
+                            test -f build/index.html
+                            npm test
+                        '''
+                    }
                 }
-            }
-            
-            steps{
-                sh '''
-                    test -f build/index.html
-                    npm test
-                '''
-            }
-        
 
-            stage('E2E') {
-                agent {
-                    docker {
-                        image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                        reuseNode true
+                stage('E2E') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                        sh '''
+                            npm install serve
+                            node_modules/.bin/serve -s build &
+                            sleep 10
+                            npx playwright test --reporter=html
+                        '''
                     }
                 }
             }
-
-            steps{
-                sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
-                    sleep 10
-                    npx playweight test --reporter=html
-                '''
+            post {
+                always {
+                    junit '**/test-results/*.xml'
+                }
             }
-        
-    
-
-           post {
-              always {
-                  
-               }
-            }
-        }  
+        }
 
         stage('Deploy') {
             agent {
@@ -82,7 +76,5 @@ pipeline {
                 '''
             }
         }
-    
     }
-    
-}    
+}
